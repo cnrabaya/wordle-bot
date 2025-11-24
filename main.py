@@ -1,6 +1,39 @@
-def main():
-    print("Hello from wordle-bot!")
+from src.wordle_bot import WordleBot
+from src.screen_capture import ScreenCapture
+from langchain_google_genai import ChatGoogleGenerativeAI
+from time import sleep
 
+def main():
+    # Define constants
+    PRTSC_KEY = "["
+    MODEL = ChatGoogleGenerativeAI
+    MODEL_NAME = "gemini-2.5-flash"
+    TEMPERATURE = 0.1
+    
+    # Calibrate screen
+    prtsc = ScreenCapture(PRTSC_KEY)
+    prtsc.calibrate_screen()
+    
+    bot = WordleBot(MODEL, MODEL_NAME, TEMPERATURE)
+    attempts = 0
+    
+    while attempts < 6:    
+        # Take screenshot and convert to base64
+        screenshot = prtsc.print_screen()
+        screenshot_b64 = prtsc.pil_to_base64(screenshot)
+        
+        print("[INFO] Please move to your browser window.")
+        sleep(3)
+        print(f"[INFO] ATTEMPT #{attempts+1}")
+        
+        response = bot.invoke(screenshot_b64)
+        if response.solved is True:
+            break
+        else:
+            print(f"[LOG] Word: {response.guess}")
+        
+        sleep(1)
+        attempts += 1
 
 if __name__ == "__main__":
     main()

@@ -4,4 +4,16 @@ version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.13"
-dependencies = []
+dependencies = [
+    "iprogress>=0.4",
+    "ipykernel>=7.1.0",
+    "langchain>=1.0.8",
+    "langchain-agent>=0.1.1",
+    "langchain-google-genai>=3.1.0",
+    "matplotlib>=3.10.7",
+    "numpy>=2.3.5",
+    "opencv-python>=4.11.0.86",
+    "pyautogui>=0.9.54",
+    "pynput>=1.8.1",
+    "python-dotenv>=1.2.1",
+]
