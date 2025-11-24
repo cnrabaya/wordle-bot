@@ -1,5 +1,5 @@
 from time import sleep
-from pynput.keyboard import Controller, Key
+from pynput import keyboard, mouse
 from pydantic import BaseModel
 from src.prompts import SYSTEM_PROMPT
 
@@ -30,12 +30,16 @@ class WordleBot:
                         system_prompt=SYSTEM_PROMPT,
                         response_format=ToolStrategy(WordleGuess)
                         )
-        self.response: str = ""
+        self.tokens = {
+                    "input_tokens": 0,
+                    "output_tokens": 0,
+                    "total_tokens": 0
+                    }
     
     @staticmethod
     def create_message(image_data):
         input_message = [
-                {"type": "text", "text": "Here's the wordle puzzle so far. Make a guess."},
+                {"type": "text", "text": "Here's the Wordle puzzle so far. Make a guess."},
                 {
                     "type": "image_url",
                     "image_url": {"url": f"data:image/png;base64,{image_data}"},
@@ -66,17 +70,15 @@ class WordleBot:
             
     @staticmethod
     @tool("type_word", description="Type a word in the current open window.")
-    def type_word(word: str, delay: float = 0.4):
+    def type_word(word: str, delay: float = 0.3):
         """Type the word using the keyboard"""
-        kb = Controller()
+        kb = keyboard.Controller()
         sleep(1)
         for char in word:
             kb.type(char)
             sleep(delay)
-        sleep(0.5)
-        kb.press(Key.enter)
-        sleep(0.5)
-        kb.press(Key.enter)
+        sleep(delay)
+        kb.type("\n")
     
     @staticmethod
     @wrap_tool_call

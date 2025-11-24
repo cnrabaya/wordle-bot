@@ -17,23 +17,28 @@ def main():
     bot = WordleBot(MODEL, MODEL_NAME, TEMPERATURE)
     attempts = 0
     
-    while attempts < 6:    
+    while attempts < 6:
+        attempts += 1    
         # Take screenshot and convert to base64
         screenshot = prtsc.print_screen()
         screenshot_b64 = prtsc.pil_to_base64(screenshot)
         
         print("[INFO] Please move to your browser window.")
         sleep(3)
-        print(f"[INFO] ATTEMPT #{attempts+1}")
-        
+        print(f"[INFO] Taking a guess...")
         response = bot.invoke(screenshot_b64)
+        
         if response.solved is True:
             break
         else:
-            print(f"[LOG] Word: {response.guess}")
+            print(f"[LOG] GUESS#{attempts} WORD: {response.guess}")
         
         sleep(1)
-        attempts += 1
 
 if __name__ == "__main__":
     main()
+
+# TODO: 
+# 1. Create screenshot analyzer agent, generates constraints for word
+# 2. LangChain chain
+# 3. Implement token count
