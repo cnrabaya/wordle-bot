@@ -1,7 +1,7 @@
 from time import sleep
-from pynput import keyboard, mouse
+from pynput import keyboard
 from pydantic import BaseModel
-from src.prompts import SYSTEM_PROMPT
+from src.prompts import AGENT_PROMPT, ANALYZER_PROMPT
 
 from langchain_core.messages import HumanMessage, ToolMessage
 from langchain.agents import create_agent
@@ -16,6 +16,7 @@ load_dotenv()
 
 class WordleGuess(BaseModel):
     guess: str
+    analysis: str
     solved: bool
 
 
@@ -25,9 +26,9 @@ class WordleBot:
         self.llm = model(model=model_name, temperature=temperature)
         self.agent = create_agent(
                         model=self.llm, 
-                        tools=[self.type_word],
+                        tools=[self.type_word, self.analyze_puzzle],
                         middleware=[self.handle_tool_errors], 
-                        system_prompt=SYSTEM_PROMPT,
+                        system_prompt=AGENT_PROMPT,
                         response_format=ToolStrategy(WordleGuess)
                         )
         self.tokens = {
@@ -37,9 +38,9 @@ class WordleBot:
                     }
     
     @staticmethod
-    def create_message(image_data):
+    def create_message(image_data: str):
         input_message = [
-                {"type": "text", "text": "Here's the Wordle puzzle so far. Make a guess."},
+                {"type": "text", "text": "Here's the Wordle puzzle so far."},
                 {
                     "type": "image_url",
                     "image_url": {"url": f"data:image/png;base64,{image_data}"},
@@ -48,7 +49,7 @@ class WordleBot:
         
         return HumanMessage(content=input_message)
     
-    def invoke(self, image_data):
+    def invoke(self, image_data: str):
         message = self.create_message(image_data)
         response = None
         
@@ -62,7 +63,7 @@ class WordleBot:
                 content_blocks = data['messages'][-1].content_blocks
                 if content_blocks[-1]["type"] == "text":
                     print(f"[LOG] Content: {content_blocks[-1]["text"]}")
-                else:
+                elif step == "model":
                     print(f"[LOG] Content: {content_blocks}")
                 response = data.get("structured_response", None)
         
@@ -77,8 +78,16 @@ class WordleBot:
         for char in word:
             kb.type(char)
             sleep(delay)
-        sleep(delay)
         kb.type("\n")
+        return "Word typed successfully"
+        
+    @tool("analyze_puzzle", description="Analyze the current wordle puzzle state for clues.")
+    def analyze_puzzle(self, image_data: str):
+        img_prompt = self.create_message(image_data)
+        input_msg = [{"type": "text", "text": ANALYZER_PROMPT}]
+        input_prompt = HumanMessage(content=input_msg)
+        response = self.llm.invoke({"messages": [input_prompt, img_prompt]})
+        return response["messages"][-1].content
     
     @staticmethod
     @wrap_tool_call

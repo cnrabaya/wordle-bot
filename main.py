@@ -1,7 +1,8 @@
 from src.wordle_bot import WordleBot
 from src.screen_capture import ScreenCapture
-from langchain_google_genai import ChatGoogleGenerativeAI
 from time import sleep
+from langchain_google_genai import ChatGoogleGenerativeAI
+# Import other model/s here
 
 def main():
     # Define constants
@@ -26,12 +27,12 @@ def main():
         print("[INFO] Please move to your browser window.")
         sleep(3)
         print(f"[INFO] Taking a guess...")
-        response = bot.invoke(screenshot_b64)
         
+        response = bot.invoke(screenshot_b64)
         if response.solved is True:
             break
         else:
-            print(f"[LOG] GUESS#{attempts} WORD: {response.guess}")
+            print(f"[LOG] GUESS#{attempts}: {response.guess}")
         
         sleep(1)
 
@@ -42,3 +43,4 @@ if __name__ == "__main__":
 # 1. Create screenshot analyzer agent, generates constraints for word
 # 2. LangChain chain
 # 3. Implement token count
+# 4. Implement screenshot check using matplotlib
