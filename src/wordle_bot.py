@@ -3,7 +3,7 @@ from pynput import keyboard
 from pydantic import BaseModel
 from src.prompts import AGENT_PROMPT, ANALYZER_PROMPT
 
-from langchain_core.messages import HumanMessage, ToolMessage
+from langchain_core.messages import HumanMessage, ToolMessage, SystemMessage
 from langchain.agents import create_agent
 from langchain.agents.middleware import wrap_tool_call
 from langchain.agents.structured_output import ToolStrategy
@@ -26,47 +26,38 @@ class WordleBot:
         self.llm = model(model=model_name, temperature=temperature)
         self.agent = create_agent(
                         model=self.llm, 
-                        tools=[self.type_word, self.analyze_puzzle],
+                        tools=[self.type_word, self.clear_entry],
                         middleware=[self.handle_tool_errors], 
                         system_prompt=AGENT_PROMPT,
                         response_format=ToolStrategy(WordleGuess)
                         )
-        self.tokens = {
-                    "input_tokens": 0,
-                    "output_tokens": 0,
-                    "total_tokens": 0
-                    }
     
     @staticmethod
     def create_message(image_data: str):
         input_message = [
-                {"type": "text", "text": "Here's the Wordle puzzle so far."},
+                {"type": "text", "text": "Wordle Puzzle Image:"},
                 {
                     "type": "image_url",
                     "image_url": {"url": f"data:image/png;base64,{image_data}"},
                 }
             ]
-        
         return HumanMessage(content=input_message)
     
     def invoke(self, image_data: str):
         message = self.create_message(image_data)
-        response = None
+        print(f"[INFO] Analyzing puzzle...")
+        rules = self.analyze_puzzle(message)
         
         # Streaming
         for chunk in self.agent.stream(
-            {"messages": message},
+            {"messages": HumanMessage(content=rules)},
             stream_mode="updates"
         ):
             for step, data in chunk.items():
-                print(f"[LOG] Step: {step}")
                 content_blocks = data['messages'][-1].content_blocks
-                if content_blocks[-1]["type"] == "text":
-                    print(f"[LOG] Content: {content_blocks[-1]["text"]}")
-                elif step == "model":
-                    print(f"[LOG] Content: {content_blocks}")
+                if step == "tools":
+                    print(f"[LOG] {content_blocks[-1]["text"]}")
                 response = data.get("structured_response", None)
-        
         return response
             
     @staticmethod
@@ -79,15 +70,28 @@ class WordleBot:
             kb.type(char)
             sleep(delay)
         kb.type("\n")
-        return "Word typed successfully"
+        return "Word typed successfully."
+
+    @staticmethod
+    @tool("clear_entry", description="Clear the current invalid entry in the puzzle.")
+    def clear_entry(delay: float = 0.1):
+        """Clear the current entry by pressing backspace on the keyboard 5 times"""
+        print("[LOG] Invalid word found.")
+        kb = keyboard.Controller()
+        sleep(1)
+        for _ in range(5):
+            kb.press(keyboard.Key.backspace)
+            kb.release(keyboard.Key.backspace)
+            sleep(delay)
+        return "Invalid entry cleared."
         
-    @tool("analyze_puzzle", description="Analyze the current wordle puzzle state for clues.")
-    def analyze_puzzle(self, image_data: str):
-        img_prompt = self.create_message(image_data)
+    def analyze_puzzle(self, image_data: HumanMessage):
+        """Look for clues in the previous guess in the image"""
         input_msg = [{"type": "text", "text": ANALYZER_PROMPT}]
-        input_prompt = HumanMessage(content=input_msg)
-        response = self.llm.invoke({"messages": [input_prompt, img_prompt]})
-        return response["messages"][-1].content
+        input_prompt = SystemMessage(content=input_msg)
+        response = self.llm.invoke([input_prompt, image_data])
+        print(f"[LOG] {response.content}")
+        return response.content
     
     @staticmethod
     @wrap_tool_call
@@ -101,19 +105,3 @@ class WordleBot:
                 content=f"Tool error: Please check your input and try again. ({str(e)})",
                 tool_call_id=request.tool_call["id"]
             )
-            
-    def get_token_metadata(self):
-        input_tokens, output_tokens, total_tokens = 0
-        
-        for msg in self.reponse["messages"]:
-            if msg["type"] == "AIMessage":
-                token_usage = msg["metadata"]["usage"]
-                input_tokens += token_usage["input_tokens"]
-                output_tokens += token_usage["output_tokens"]
-                total_tokens += token_usage["total_tokens"]
-                
-        return {
-            "Input Tokens": input_tokens,
-            "Output Tokens": output_tokens,
-            "Total Tokens": total_tokens
-        }

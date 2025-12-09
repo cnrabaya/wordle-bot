@@ -54,7 +54,7 @@ The Wordle Bot operates through the following steps:
 
 1.  **Run the bot:**
     ```bash
-    python main.py
+    uv run main.py
     ```
 
 2.  **Calibrate the screen:**
@@ -70,9 +70,3 @@ You can adjust some parameters in `main.py`:
 -   `PRTSC_KEY`: The key used for screen calibration (default: `[`).
 -   `MODEL_NAME`: The specific LLM to use (default: `gemini-2.5-flash`).
 -   `TEMPERATURE`: The creativity/randomness of the LLM's responses (default: `0.1`).
-
-## TODOs
-
--   Create a dedicated screenshot analyzer agent to generate constraints for word suggestions.
--   Implement a more robust LangChain chain for complex reasoning.
--   Improve token count tracking for cost optimization.
