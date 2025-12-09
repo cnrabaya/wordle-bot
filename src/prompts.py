@@ -44,7 +44,7 @@ RULES:
 - The letters that are not in the word are: 'B', 'A'
 
 #EXAMPLES:
-Image Input: (for cases when one letter is both green and/or yellow in ONE ROW, meaning letter appears more than once in the word)
+Image Input:
 For the word 'NERVE' in a given row: If N is green, the first E (2nd letter) is green, R is yellow, V is gray, and the second E (fifth letter) is yellow
 Output:
 RULES:
