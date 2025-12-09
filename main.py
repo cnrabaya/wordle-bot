@@ -9,11 +9,12 @@ def main():
     PRTSC_KEY = "["
     MODEL = ChatGoogleGenerativeAI
     MODEL_NAME = "gemini-2.5-flash"
-    TEMPERATURE = 0.1
+    TEMPERATURE = 0.0
     
     # Calibrate screen
     prtsc = ScreenCapture(PRTSC_KEY)
     prtsc.calibrate_screen()
+    sleep(2)
     
     bot = WordleBot(MODEL, MODEL_NAME, TEMPERATURE)
     while (True):
@@ -22,7 +23,6 @@ def main():
         screenshot_b64 = prtsc.pil_to_base64(screenshot)
         
         print("[INFO] Please move to your browser window.")
-        sleep(2)
         
         response = bot.invoke(screenshot_b64)
         if response.solved is True:

@@ -65,7 +65,6 @@ class WordleBot:
     def type_word(word: str, delay: float = 0.3):
         """Type the word using the keyboard"""
         kb = keyboard.Controller()
-        sleep(1)
         for char in word:
             kb.type(char)
             sleep(delay)
@@ -78,7 +77,6 @@ class WordleBot:
         """Clear the current entry by pressing backspace on the keyboard 5 times"""
         print("[LOG] Invalid word found.")
         kb = keyboard.Controller()
-        sleep(1)
         for _ in range(5):
             kb.press(keyboard.Key.backspace)
             kb.release(keyboard.Key.backspace)

@@ -34,7 +34,6 @@ The rules you will generate is based on the color of each letter in a tile. The 
 - '<insert letter in yellow tile>' is in the word but cannot be the <insert position> letter.
 - The letters that are not in the word are: '<insert letter(s) in gray tile(s)'>
 
-#EXAMPLES:
 Image Input: 
 For the word 'BLAME' in a given row: If L is green, M and E are yellow, and B and A are gray
 Output:
@@ -43,6 +42,17 @@ RULES:
 - 'M' is in the word but cannot be the 4th letter.
 - 'L' is in the word but cannot be the 5th letter.
 - The letters that are not in the word are: 'B', 'A'
+
+#EXAMPLES:
+Image Input: (for cases when one letter is both green and/or yellow in ONE ROW, meaning letter appears more than once in the word)
+For the word 'NERVE' in a given row: If N is green, the first E (2nd letter) is green, R is yellow, V is gray, and the second E (fifth letter) is yellow
+Output:
+RULES:
+- The first letter of the word is 'N'.
+- The second letter of the word is 'E'.
+- 'R' is in the word but cannot be the 3rd letter.
+- Another 'E' is in the word but cannot be the 5th letter.
+- The letters that are not in the word are: 'V'
 
 Image Input: 
 There are no letters in the image.
